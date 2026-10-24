@@ -1,33 +1,25 @@
+
 import { useState } from 'react'
 import Home from './paginas/Home'
+import Reactor from './paginas/Reactor'
+import Inventario from './paginas/Inventario'
 import './App.css'
 
 function App() {
   const [vista, setVista] = useState('home')
 
-  if (vista === 'moduloUno') {
-    return (
-      <main>
-        <button onClick={() => setVista('home')}>
-          Volver al inicio
-        </button>
-        <h1>Módulo uno</h1>
-      </main>
-    )
-  }
+  const volver = () => setVista('home')
 
-  if (vista === 'moduloDos') {
-    return (
-      <main>
-        <button onClick={() => setVista('home')}>
-          Volver al inicio
-        </button>
-        <h1>Módulo dos</h1>
-      </main>
-    )
-  }
+  switch (vista) {
+    case 'reactor':
+      return <Reactor volver={volver} />
 
-  return <Home navegar={setVista} />
+    case 'inventario':
+      return <Inventario volver={volver} />
+
+    default:
+      return <Home navegar={setVista} />
+  }
 }
 
 export default App

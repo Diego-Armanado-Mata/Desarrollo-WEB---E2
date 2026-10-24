@@ -1,28 +1,33 @@
+
 import { Container, Row, Col } from 'reactstrap'
 import ModuleCard from '../componentes/tarjeta'
 
 function Home({ navegar }) {
   return (
-    <Container className="py-5">
+    <Container className="home-container py-5">
       <header className="text-center mb-5">
-        <h1>Projecto Evaluación 2</h1>
-        <p>Selecciona la solución a la que deseas acceder.</p>
+        <h1>Centro de operaciones</h1>
+        <p>Selecciona el módulo con el que deseas trabajar.</p>
       </header>
 
       <Row className="g-4">
-        <Col md="6">
+        <Col xs="12" md="6">
           <ModuleCard
             titulo="Estabiliza el Reactor"
-            descripcion="Estabiliza el reactor adivinando la temperatura ideal."
-            onClick={() => navegar('moduloUno')}
+            descripcion="Estabiliza el reactor adivinando la temperatura entre 1 y 100."
+            icono="🌡️"
+            textoBoton="Abrir módulo de temperatura"
+            onClick={() => navegar('reactor')}
           />
         </Col>
 
-        <Col md="6">
+        <Col xs="12" md="6">
           <ModuleCard
-            titulo="Gestión de Inventario"
-            descripcion="Administra el inventario de la nave Capitán."
-            onClick={() => navegar('moduloDos')}
+            titulo="Gestión de inventario"
+            descripcion="Administra los productos del inventario de la nave."
+            icono="📦"
+            textoBoton="Abrir módulo de inventario"
+            onClick={() => navegar('inventario')}
           />
         </Col>
       </Row>
