@@ -1,0 +1,10 @@
+.app {
+  min-height: 100vh;
+}
+/* css basico del proyecto */
+
+header,
+main,
+footer {
+  padding: 1rem 2rem;
+}
