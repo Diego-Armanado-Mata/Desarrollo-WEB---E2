@@ -1,25 +1,33 @@
-//plantilla base
+import { useState } from 'react'
+import Home from './paginas/Home'
 import './App.css'
 
 function App() {
-  return (
-    <div className="app">
-      <header>
-        <h1>Mi proyecto web</h1>
-      </header>
+  const [vista, setVista] = useState('home')
 
+  if (vista === 'moduloUno') {
+    return (
       <main>
-        <section>
-          <h2>Home</h2>
-          <p>Bienvenido a mi aplicación.</p>
-        </section>
+        <button onClick={() => setVista('home')}>
+          Volver al inicio
+        </button>
+        <h1>Módulo uno</h1>
       </main>
+    )
+  }
 
-      <footer>
-        <p>Proyecto de Programación Web</p>
-      </footer>
-    </div>
-  )
+  if (vista === 'moduloDos') {
+    return (
+      <main>
+        <button onClick={() => setVista('home')}>
+          Volver al inicio
+        </button>
+        <h1>Módulo dos</h1>
+      </main>
+    )
+  }
+
+  return <Home navegar={setVista} />
 }
 
 export default App
