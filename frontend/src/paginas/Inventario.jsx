@@ -5,7 +5,6 @@ import {
   ListGroupItem, ButtonGroup, Alert, UncontrolledAlert 
 } from 'reactstrap';
 
-// Panel Superior (Ya lo tenías excelente, solo lo integramos al estado)
 const PanelSuperior = ({ creditosDisponibles, costoTotalCarga, mensajeError }) => {
   return (
     <div className="panel-superior sticky-top mb-4 mt-3">
@@ -33,38 +32,34 @@ const PanelSuperior = ({ creditosDisponibles, costoTotalCarga, mensajeError }) =
 };
 
 function Inventario({ volver }) {
-  // 1. Definición de Estados
+
   const [inventario, setInventario] = useState([]);
   const [carga, setCarga] = useState([]);
   const [creditos, setCreditos] = useState(0);
   const [costoTotal, setCostoTotal] = useState(0);
   const [error, setError] = useState(null);
 
-  // 2. Hook de efecto para cargar datos iniciales al montar el componente
   useEffect(() => {
     cargarDatos();
   }, []);
 
-  // 3. Función general para refrescar Catálogo y Bodega
   const cargarDatos = async () => {
     try {
-      // Consumir Endpoint 1: GET /api/inventario
+      
       const resInv = await fetch('http://localhost:3000/api/inventario');
       const dataInv = await resInv.json();
       setInventario(dataInv);
 
-      // Consumir Endpoint 2: GET /api/carga
       const resCarga = await fetch('http://localhost:3000/api/carga');
       const dataCarga = await resCarga.json();
       setCarga(dataCarga.itemsCargados);
       setCreditos(dataCarga.creditos);
       setCostoTotal(dataCarga.total);
     } catch (err) {
-      setError("Error de conexión con la base estelar.");
+      setError("Error de conexión con la base. ");
     }
   };
 
-  // 4. Funciones de Interacción (Endpoints 3, 4 y 5)
   const agregarAlManifiesto = async (equipoId) => {
     setError(null);
     try {
@@ -78,14 +73,14 @@ function Inventario({ volver }) {
         const errData = await response.json();
         throw new Error(errData.mensaje || "Error al agregar stock");
       }
-      cargarDatos(); // Refrescar vista si hay éxito
+      cargarDatos();
     } catch (err) {
-      setError(err.message); // Atrapa el error y lo manda al UncontrolledAlert
+      setError(err.message); 
     }
   };
 
   const modificarUnidades = async (id, nuevaCantidad) => {
-    if (nuevaCantidad < 1) return; // Validación básica frontend
+    if (nuevaCantidad < 1) return;
     setError(null);
     try {
       const response = await fetch(`http://localhost:3000/api/carga/actualizar-unidades/${id}`, {
@@ -107,7 +102,6 @@ function Inventario({ volver }) {
 const desembarcar = async (id) => {
     setError(null);
     try {
-      // Conservamos la ruta original que pediste
       const response = await fetch(`http://localhost:3000/api/eliminar/${id}`, {
   method: 'DELETE'
   });
