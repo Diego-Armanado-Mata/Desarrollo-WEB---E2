@@ -47,33 +47,4 @@ router.post('/reboot', (req, res) => {
   })
 })
 
-//Ruta DELETE /
-router.delete('/eliminar/:id', (req, res) => {
-
-    const idSuministro = parseInt(req.params.id);
-
-    const indexEnCarga = carga.itemsCargados.findIndex(item => item.id === idSuministro);
-
-    if (indexEnCarga === -1) {
-        return res.status(404).json({ error: "El suministro no esta cargado" });
-    }
-
-    const itemAEliminar = carga.itemsCargados[indexEnCarga];
-    
-    const itemEnInventario = inventario.find(item => item.id === idSuministro);
-
-    itemEnInventario.stock += itemAEliminar.cantidad;
-
-    const costoReembolso = itemEnInventario.precio * itemAEliminar.cantidad;
-    carga.creditos += costoReembolso;
-    carga.total -= costoReembolso;
-
-    carga.itemsCargados.splice(indexEnCarga, 1);
-
-    res.json({ 
-        mensaje: "Suministro eliminado correctamente", 
-        cargaActualizada: carga 
-    });
-});
-
 module.exports = router

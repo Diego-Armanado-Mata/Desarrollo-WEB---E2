@@ -9,6 +9,7 @@ let inventario = [
 
 let cargaActiva = {
   creditos: 500.00,
+  total: 0,
   itemsCargados: []
 }
 
@@ -63,12 +64,44 @@ router.post('/carga/agregar', (req, res) => {
     });
   }
 
-  // (Opcional pero recomendado) Descontar el stock temporalmente de la base
   itemInventario.stock -= cantidad;
 
+  const costoTotalItem = itemInventario.precio * cantidad;
+  cargaActiva.creditos -= costoTotalItem;
+  cargaActiva.total += costoTotalItem;
 
   res.json({ mensaje: "Suministro agregado temporalmente", cargaActiva })
 })
+
+// Ruta DELETE /eliminar/:id
+router.delete('/eliminar/:id', (req, res) => {
+    const idSuministro = parseInt(req.params.id);
+
+    const indexEnCarga = cargaActiva.itemsCargados.findIndex(item => item.id === idSuministro);
+
+    if (indexEnCarga === -1) {
+        return res.status(404).json({ error: "El suministro no está cargado" });
+    }
+
+    const itemAEliminar = cargaActiva.itemsCargados[indexEnCarga];
+    const itemEnInventario = inventario.find(item => item.id === idSuministro);
+
+    if (itemEnInventario) {
+        itemEnInventario.stock += itemAEliminar.cantidad;
+    }
+
+    const costoReembolso = itemAEliminar.precio * itemAEliminar.cantidad;
+
+    cargaActiva.creditos += costoReembolso;
+    cargaActiva.total -= costoReembolso;
+
+    cargaActiva.itemsCargados.splice(indexEnCarga, 1);
+
+    res.json({ 
+        mensaje: "Suministro eliminado correctamente", 
+        cargaActualizada: cargaActiva 
+    });
+});
 
 // 4. PUT /api/carga/actualizar-unidades/:id[cite: 3]
 router.put('/carga/actualizar-unidades/:id', (req, res) => {
