@@ -16,10 +16,10 @@ app.get('/api/health', (req, res) => {
 
 // Importar rutas modularizadas (sin .routes)
 const reactorRoutes = require('./routes/reactor')
-// const cargaRoutes = require('./routes/carga')
+const cargaRoutes = require('./routes/carga')
 
 // Montar las rutas en la app
 app.use('/', reactorRoutes)      // Mantiene /adjust y /reboot en la raíz
-// app.use('/api', cargaRoutes)     // Monta /api/inventario, /api/carga, etc.
+app.use('/api', cargaRoutes)     // Monta /api/inventario, /api/carga, etc.
 
 module.exports = app
