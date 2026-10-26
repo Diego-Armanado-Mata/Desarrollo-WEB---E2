@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Container, Button, Row, Col, Card, CardBody, 
-  CardTitle, CardText, Badge, ListGroup, 
-  ListGroupItem, ButtonGroup, Alert, UncontrolledAlert 
+import {
+  Container, Button, Row, Col, Card, CardBody,
+  CardTitle, CardText, Badge, ListGroup,
+  ListGroupItem, ButtonGroup, Alert, UncontrolledAlert
 } from 'reactstrap';
+
+import { obtenerInventario } from '../servicios/api';
+
 
 const PanelSuperior = ({ creditosDisponibles, costoTotalCarga, mensajeError }) => {
   return (
@@ -38,6 +41,8 @@ function Inventario({ volver }) {
   const [creditos, setCreditos] = useState(0);
   const [costoTotal, setCostoTotal] = useState(0);
   const [error, setError] = useState(null);
+  const [procesando, setProcesando] = useState(false);
+  const [itemProcesando, setItemProcesando] = useState(null);
 
   useEffect(() => {
     cargarDatos();
@@ -45,69 +50,119 @@ function Inventario({ volver }) {
 
   const cargarDatos = async () => {
     try {
-      
-      const resInv = await fetch('http://localhost:3000/api/inventario');
-      const dataInv = await resInv.json();
+
+
+
+      const [dataInv, resCarga] = await Promise.all([
+        obtenerInventario(),
+        fetch('http://localhost:3000/api/carga')
+      ]);
+
+      if (!resCarga.ok) {
+        throw new Error("No se pudo obtener la carga");
+      }
+
+      const dataCarga = await resCarga.json();
+
       setInventario(dataInv);
 
-      const resCarga = await fetch('http://localhost:3000/api/carga');
-      const dataCarga = await resCarga.json();
       setCarga(dataCarga.itemsCargados);
       setCreditos(dataCarga.creditos);
       setCostoTotal(dataCarga.total);
+
     } catch (err) {
-      setError("Error de conexión con la base. ");
+      console.error("Error al cargar datos:", err);
+      setError(err.message);
     }
+
   };
 
   const agregarAlManifiesto = async (equipoId) => {
+    if (procesando) return;
+
     setError(null);
+    setProcesando(true);
     try {
       const response = await fetch('http://localhost:3000/api/carga/agregar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ equipoId, cantidad: 1 })
       });
-      
+
       if (!response.ok) {
         const errData = await response.json();
         throw new Error(errData.mensaje || "Error al agregar stock");
       }
-      cargarDatos();
+      await cargarDatos();
+
     } catch (err) {
-      setError(err.message); 
+      setError(err.message);
+    } finally {
+      setProcesando(false);
     }
+
   };
 
   const modificarUnidades = async (id, nuevaCantidad) => {
     if (nuevaCantidad < 1) return;
     setError(null);
+
+    if (procesando) return;
+    setProcesando(true);
+    setItemProcesando(id);
+
+
     try {
-      const response = await fetch(`http://localhost:3000/api/carga/actualizar-unidades/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cantidad: nuevaCantidad })
-      });
+      
+      const response = await fetch(
+        `http://localhost:3000/api/carga/actualizar-unidades/${id}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cantidad: nuevaCantidad })
+        }
+      );
 
       if (!response.ok) {
         const errData = await response.json();
         throw new Error(errData.mensaje || "Créditos insuficientes");
       }
-      cargarDatos();
+      await cargarDatos();
+
     } catch (err) {
       setError(err.message);
+    } finally {
+      setProcesando(false);
+      setItemProcesando(null);
     }
+
   };
 
-const desembarcar = async (id) => {
+  const desembarcar = async (id) => {
+    if (procesando) return;
+
     setError(null);
+    setProcesando(true);
     try {
-      const response = await fetch(`http://localhost:3000/api/eliminar/${id}`, {
-  method: 'DELETE'
-  });
-      if (response.ok) cargarDatos();
+      const response = await fetch(
+
+        `http://localhost:3000/api/eliminar/${id}`
+
+        , {
+          method: 'DELETE'
+        });
+
+      if (!response.ok) {
+        const datosError = await response.json();
+        throw new Error(datosError.error || "Error al desembarcar");
+      }
+
+      await cargarDatos();
+
     } catch (err) {
-      setError("Error al desembarcar el suministro.");
+      setError(err.message);
+    } finally {
+      setProcesando(false);
     }
   };
 
@@ -117,10 +172,10 @@ const desembarcar = async (id) => {
         ← Volver al inicio
       </Button>
 
-      <PanelSuperior 
-        creditosDisponibles={creditos} 
-        costoTotalCarga={costoTotal} 
-        mensajeError={error} 
+      <PanelSuperior
+        creditosDisponibles={creditos}
+        costoTotalCarga={costoTotal}
+        mensajeError={error}
       />
 
       <Row className="mt-4">
@@ -143,7 +198,7 @@ const desembarcar = async (id) => {
                         Agotado en Base
                       </Button>
                     ) : (
-                      <Button color="primary" className="w-100" onClick={() => agregarAlManifiesto(item.id)}>
+                      <Button color="primary" className="w-100" disabled={procesando} onClick={() => agregarAlManifiesto(item.id)}>
                         Añadir a la Nave
                       </Button>
                     )}
@@ -169,18 +224,39 @@ const desembarcar = async (id) => {
                       <span>{item.nombre || `Item ${item.id}`}</span>
                     </div>
                     <div className="d-flex justify-content-between align-items-center mt-2">
+
+                      {procesando && itemProcesando === item.id && (
+                        <span className="text-warning small">
+                          Calculando peso...
+                        </span>
+                      )}
+
                       <ButtonGroup size="sm">
-                        <Button color="secondary" outline onClick={() => modificarUnidades(item.id, item.cantidad - 1)}>
+
+                        <Button
+                          color="secondary"
+                          outline
+                          disabled={procesando || item.cantidad <= 1}
+                          onClick={() => modificarUnidades(item.id, item.cantidad - 1)}
+                        >
                           -
                         </Button>
+
                         <Button color="secondary" disabled>
                           {item.cantidad}
                         </Button>
-                        <Button color="secondary" outline onClick={() => modificarUnidades(item.id, item.cantidad + 1)}>
+
+                        <Button
+                          color="secondary"
+                          outline
+                          disabled={procesando}
+                          onClick={() => modificarUnidades(item.id, item.cantidad + 1)}
+                        >
                           +
                         </Button>
+
                       </ButtonGroup>
-                      <Button color="danger" outline size="sm" onClick={() => desembarcar(item.id)}>
+                      <Button color="danger" outline size="sm" disabled={procesando} onClick={() => desembarcar(item.id)}>
                         Desembarcar
                       </Button>
                     </div>

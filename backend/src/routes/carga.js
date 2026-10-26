@@ -28,24 +28,24 @@ router.post('/carga/agregar', (req, res) => {
   const { equipoId, cantidad } = req.body
   // Implementa tu lógica de validación de stock aquí
 
-     if (!equipoId || !cantidad || cantidad <= 0) {
-    return res.status(400).json({ 
-      mensaje: "Faltan datos requeridos (equipoId o cantidad válida)." 
+  if (!equipoId || !cantidad || cantidad <= 0) {
+    return res.status(400).json({
+      mensaje: "Faltan datos requeridos (equipoId o cantidad válida)."
     });
   }
 
   const itemInventario = inventario.find(item => item.id === equipoId);
 
   if (!itemInventario) {
-    return res.status(404).json({ 
-      mensaje: "El suministro no existe en el inventario." 
+    return res.status(404).json({
+      mensaje: "El suministro no existe en el inventario."
     });
   }
 
 
   if (itemInventario.stock < cantidad) {
-    return res.status(400).json({ 
-      mensaje: "Stock en base insuficiente" 
+    return res.status(400).json({
+      mensaje: "Stock en base insuficiente"
     });
   }
 
@@ -75,32 +75,32 @@ router.post('/carga/agregar', (req, res) => {
 
 // Ruta DELETE /eliminar/:id
 router.delete('/eliminar/:id', (req, res) => {
-    const idSuministro = parseInt(req.params.id);
+  const idSuministro = parseInt(req.params.id);
 
-    const indexEnCarga = cargaActiva.itemsCargados.findIndex(item => item.id === idSuministro);
+  const indexEnCarga = cargaActiva.itemsCargados.findIndex(item => item.id === idSuministro);
 
-    if (indexEnCarga === -1) {
-        return res.status(404).json({ error: "El suministro no está cargado" });
-    }
+  if (indexEnCarga === -1) {
+    return res.status(404).json({ error: "El suministro no está cargado" });
+  }
 
-    const itemAEliminar = cargaActiva.itemsCargados[indexEnCarga];
-    const itemEnInventario = inventario.find(item => item.id === idSuministro);
+  const itemAEliminar = cargaActiva.itemsCargados[indexEnCarga];
+  const itemEnInventario = inventario.find(item => item.id === idSuministro);
 
-    if (itemEnInventario) {
-        itemEnInventario.stock += itemAEliminar.cantidad;
-    }
+  if (itemEnInventario) {
+    itemEnInventario.stock += itemAEliminar.cantidad;
+  }
 
-    const costoReembolso = itemAEliminar.precio * itemAEliminar.cantidad;
+  const costoReembolso = itemAEliminar.precio * itemAEliminar.cantidad;
 
-    cargaActiva.creditos += costoReembolso;
-    cargaActiva.total -= costoReembolso;
+  cargaActiva.creditos += costoReembolso;
+  cargaActiva.total -= costoReembolso;
 
-    cargaActiva.itemsCargados.splice(indexEnCarga, 1);
+  cargaActiva.itemsCargados.splice(indexEnCarga, 1);
 
-    res.json({ 
-        mensaje: "Suministro eliminado correctamente", 
-        cargaActualizada: cargaActiva 
-    });
+  res.json({
+    mensaje: "Suministro eliminado correctamente",
+    cargaActualizada: cargaActiva
+  });
 });
 
 // 4. PUT /api/carga/actualizar-unidades/:id[cite: 3]
@@ -110,8 +110,8 @@ router.put('/carga/actualizar-unidades/:id', (req, res) => {
 
   // 1. Validar que vengan los datos obligatorios y que la cantidad sea válida
   if (!id || cantidad === undefined || cantidad < 0) {
-    return res.status(400).json({ 
-      mensaje: "Faltan datos requeridos (id o cantidad válida)." 
+    return res.status(400).json({
+      mensaje: "Faltan datos requeridos (id o cantidad válida)."
     });
   }
 
@@ -122,8 +122,8 @@ router.put('/carga/actualizar-unidades/:id', (req, res) => {
   const itemInventario = inventario.find(item => item.id === numericId);
 
   if (!itemInventario) {
-    return res.status(404).json({ 
-      mensaje: "El suministro no existe en el inventario." 
+    return res.status(404).json({
+      mensaje: "El suministro no existe en el inventario."
     });
   }
 
@@ -138,11 +138,18 @@ router.put('/carga/actualizar-unidades/:id', (req, res) => {
   const diferenciaCantidad = cantidad - cantidadAnterior;
   const costoDiferencia = diferenciaCantidad * itemInventario.precio;
 
+  if (diferenciaCantidad > itemInventario.stock) {
+    return res.status(400).json({
+      mensaje: "Stock insuficiente en la base"
+    });
+  }
+
+
   // Si al subir las unidades el costo total supera los créditos disponibles, respondemos con 400
   // (También puedes evaluar si el costo total de los items supera los créditos iniciales)
   if (costoDiferencia > 0 && costoDiferencia > cargaActiva.creditos) {
-    return res.status(400).json({ 
-      mensaje: "Creditos insuficientes para esta cantidad" 
+    return res.status(400).json({
+      mensaje: "Creditos insuficientes para esta cantidad"
     });
   }
 
@@ -166,9 +173,13 @@ router.put('/carga/actualizar-unidades/:id', (req, res) => {
   // 6. Descontar o devolver créditos según el cambio
   cargaActiva.creditos -= costoDiferencia;
 
-  return res.json({ 
-    mensaje: "Unidades actualizadas correctamente", 
-    cargaActiva 
+  itemInventario.stock -= diferenciaCantidad;
+
+  cargaActiva.total += costoDiferencia;
+
+  return res.json({
+    mensaje: "Unidades actualizadas correctamente",
+    cargaActiva
   });
 });
 
