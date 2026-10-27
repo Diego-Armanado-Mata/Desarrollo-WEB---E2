@@ -167,4 +167,23 @@ router.put('/carga/actualizar-unidades/:id', (req, res) => {
   });
 });
 
+
+// Ruta para reiniciar el inventario y la carga de la misión
+router.post('/carga/reiniciar', (req, res) => {
+  // 1. Restaurar el inventario original con su stock inicial
+  inventario = [
+    { id: 201, nombre: "Tanque de Oxígeno XL", precio: 50.00, stock: 20, categoria: "Soporte Vital" },
+    { id: 202, nombre: "Raciones de Comida", precio: 20.00, stock: 35, categoria: "Sipsum" }
+  ];
+
+  // 2. Restaurar la carga activa a cero
+  cargaActiva = {
+    creditos: 500.00,
+    total: 0,
+    itemsCargados: []
+  };
+
+  res.json({ mensaje: "Misión reiniciada con éxito", cargaActiva });
+});
+
 module.exports = router

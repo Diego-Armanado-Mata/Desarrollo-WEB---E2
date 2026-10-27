@@ -56,6 +56,18 @@ function Inventario({ volver }) {
   const [sesionExpirada, setSesionExpirada] = useState(false);
   const [manifiestoConfirmado, setManifiestoConfirmado] = useState(false);
 
+const reiniciarMisionYVolver = async () => {
+  try {
+    await fetch('http://localhost:3000/api/carga/reiniciar', {
+      method: 'POST'
+    });
+  } catch (err) {
+    console.error("Error al reiniciar la misión en el servidor:", err);
+  }
+  // Llamas a la función original de props para salir
+  volver(); 
+};
+
   useEffect(() => {
     cargarDatos();
   }, []);
@@ -190,7 +202,7 @@ function Inventario({ volver }) {
 
   return (
     <Container className="py-4">
-      <Button color="secondary" outline onClick={volver} className="mb-3">
+      <Button color="secondary" outline onClick={reiniciarMisionYVolver} className="mb-3">
         ← Volver al inicio
       </Button>
 
@@ -204,9 +216,9 @@ function Inventario({ volver }) {
       {/* Pantalla si la sesión expira o el manifiesto es confirmado */}
       {manifiestoConfirmado && (
         <Alert color="success" className="text-center py-4">
-          <h4>🚀 ¡Manifiesto de Equipamiento Confirmado con Éxito!</h4>
+          <h4>¡Manifiesto de Equipamiento Confirmado con Éxito!</h4>
           <p>El transbordador está listo para el lanzamiento. Stock bloqueado correctamente.</p>
-          <Button color="primary" onClick={volver}>Finalizar Misión</Button>
+          <Button color="primary" onClick={reiniciarMisionYVolver}>Finalizar Misión</Button>
         </Alert>
       )}
 
