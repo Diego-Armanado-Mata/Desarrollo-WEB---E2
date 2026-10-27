@@ -146,7 +146,7 @@ function Inventario({ volver }) {
     try {
       const response = await fetch(
 
-        `http://localhost:3000/api/eliminar/${id}`
+        `http://localhost:3000/api/carga/eliminar/${id}`
 
         , {
           method: 'DELETE'
