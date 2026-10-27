@@ -3,8 +3,8 @@ const router = express.Router()
 
 // Simulación de datos en memoria
 let inventario = [
-  { id: 201, nombre: "Tanque de Oxígeno XL", precio: 50.00, stock: 5, categoria: "Soporte Vital" },
-  { id: 202, nombre: "Raciones de Comida", precio: 20.00, stock: 10, categoria: "Sipsum" }
+  { id: 201, nombre: "Tanque de Oxígeno XL", precio: 50.00, stock: 20, categoria: "Soporte Vital" },
+  { id: 202, nombre: "Raciones de Comida", precio: 20.00, stock: 35, categoria: "Sipsum" }
 ]
 
 let cargaActiva = {
