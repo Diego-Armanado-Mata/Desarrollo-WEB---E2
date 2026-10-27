@@ -26,7 +26,6 @@ router.get('/carga', (req, res) => {
 // 3. POST /api/carga/agregar[cite: 3]
 router.post('/carga/agregar', (req, res) => {
   const { equipoId, cantidad } = req.body
-  // Implementa tu lógica de validación de stock aquí
 
   if (!equipoId || !cantidad || cantidad <= 0) {
     return res.status(400).json({
@@ -42,20 +41,26 @@ router.post('/carga/agregar', (req, res) => {
     });
   }
 
-
+  // Validación de stock en base[cite: 3]
   if (itemInventario.stock < cantidad) {
     return res.status(400).json({
       mensaje: "Stock en base insuficiente"
     });
   }
 
+  //VErificar si hay suficientes créditos antes de agregar
+  const costoTotalItem = itemInventario.precio * cantidad;
+  if (costoTotalItem > cargaActiva.creditos) {
+    return res.status(400).json({
+      mensaje: "Creditos insuficientes para esta cantidad"
+    });
+  }
+
   const itemEnCarga = cargaActiva.itemsCargados.find(item => item.id === equipoId);
 
   if (itemEnCarga) {
-    // Si ya está en la carga, incrementamos la cantidad
     itemEnCarga.cantidad += cantidad;
   } else {
-    // Si no está, lo agregamos como un nuevo objeto a la lista de items cargados
     cargaActiva.itemsCargados.push({
       id: itemInventario.id,
       nombre: itemInventario.nombre,
@@ -65,16 +70,14 @@ router.post('/carga/agregar', (req, res) => {
   }
 
   itemInventario.stock -= cantidad;
-
-  const costoTotalItem = itemInventario.precio * cantidad;
   cargaActiva.creditos -= costoTotalItem;
   cargaActiva.total += costoTotalItem;
 
   res.json({ mensaje: "Suministro agregado temporalmente", cargaActiva })
 })
 
-// Ruta DELETE /eliminar/:id
-router.delete('/eliminar/:id', (req, res) => {
+// CORRECCIÓN: Ruta DELETE ajustada a /carga/eliminar/:id
+router.delete('/carga/eliminar/:id', (req, res) => {
   const idSuministro = parseInt(req.params.id);
 
   const indexEnCarga = cargaActiva.itemsCargados.findIndex(item => item.id === idSuministro);
@@ -106,19 +109,15 @@ router.delete('/eliminar/:id', (req, res) => {
 // 4. PUT /api/carga/actualizar-unidades/:id[cite: 3]
 router.put('/carga/actualizar-unidades/:id', (req, res) => {
   const { id } = req.params;
-  const { cantidad } = req.body; // Esta es la nueva cantidad total que el usuario quiere en su bodega
+  const { cantidad } = req.body; 
 
-  // 1. Validar que vengan los datos obligatorios y que la cantidad sea válida
   if (!id || cantidad === undefined || cantidad < 0) {
     return res.status(400).json({
       mensaje: "Faltan datos requeridos (id o cantidad válida)."
     });
   }
 
-  // Convertir el id de la URL a número para que coincida con el inventario
   const numericId = Number(id);
-
-  // 2. Buscar el suministro en el inventario general
   const itemInventario = inventario.find(item => item.id === numericId);
 
   if (!itemInventario) {
@@ -127,14 +126,9 @@ router.put('/carga/actualizar-unidades/:id', (req, res) => {
     });
   }
 
-  // 3. Buscar si el item ya está agregado en la carga activa de la nave
   const itemEnCarga = cargaActiva.itemsCargados.find(item => item.id === numericId);
-
-  // Si no está en la carga pero quieren actualizarlo, podemos manejarlo o asumir que debe existir
   const cantidadAnterior = itemEnCarga ? itemEnCarga.cantidad : 0;
 
-  // 4. VALIDACIÓN DE CRÉDITOS (Requisito del PDF)
-  // Calculamos la diferencia de unidades que se están agregando (o restando)
   const diferenciaCantidad = cantidad - cantidadAnterior;
   const costoDiferencia = diferenciaCantidad * itemInventario.precio;
 
@@ -144,24 +138,17 @@ router.put('/carga/actualizar-unidades/:id', (req, res) => {
     });
   }
 
-
-  // Si al subir las unidades el costo total supera los créditos disponibles, respondemos con 400
-  // (También puedes evaluar si el costo total de los items supera los créditos iniciales)
   if (costoDiferencia > 0 && costoDiferencia > cargaActiva.creditos) {
     return res.status(400).json({
       mensaje: "Creditos insuficientes para esta cantidad"
     });
   }
 
-  // 5. Actualizar la carga
   if (cantidad === 0) {
-    // Si la cantidad es 0, podríamos eliminar el item de la carga
     cargaActiva.itemsCargados = cargaActiva.itemsCargados.filter(item => item.id !== numericId);
   } else if (itemEnCarga) {
-    // Actualizamos al nuevo valor absoluto de unidades
     itemEnCarga.cantidad = cantidad;
   } else {
-    // Si no estaba y mandan una cantidad mayor a 0, lo agregamos
     cargaActiva.itemsCargados.push({
       id: itemInventario.id,
       nombre: itemInventario.nombre,
@@ -170,11 +157,8 @@ router.put('/carga/actualizar-unidades/:id', (req, res) => {
     });
   }
 
-  // 6. Descontar o devolver créditos según el cambio
   cargaActiva.creditos -= costoDiferencia;
-
   itemInventario.stock -= diferenciaCantidad;
-
   cargaActiva.total += costoDiferencia;
 
   return res.json({
@@ -182,7 +166,5 @@ router.put('/carga/actualizar-unidades/:id', (req, res) => {
     cargaActiva
   });
 });
-
-
 
 module.exports = router
