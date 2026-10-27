@@ -1,0 +1,125 @@
+
+#root {
+  min-height: 100vh;
+}
+
+.module-card {
+  background-color: #1E1E1E;
+  border-radius: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  color: #94A3B8;
+}
+
+.module-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(97, 17, 117, 0.1);
+}
+
+.module-card-icon {
+  font-size: 2.5rem;
+}
+
+.home-container {
+  max-width: 1100px;
+}
+
+.game-area {
+  max-width: 500px;
+  margin-inline: auto;
+}
+
+.reactor-form,
+.reactor-history {
+  padding: 1.25rem;
+  border: 1px solid #343434;
+  border-radius: 12px;
+  background-color: #1e1e1e;
+}
+
+.reactor-form .form-control {
+  color: #e2e8f0;
+  background-color: #121212;
+  border-color: #475569;
+}
+
+.reactor-form .form-control:focus {
+  border-color: #a855f7;
+  box-shadow: 0 0 0 0.2rem rgba(168, 85, 247, 0.2);
+}
+
+.sus-input-group {
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.sus-input-group .sus-input {
+  min-width: 0;
+  min-height: 3rem;
+  text-align: center;
+  font-family: monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  border-radius: 0.375rem !important;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.sus-input-group .sus-input::-webkit-inner-spin-button,
+.sus-input-group .sus-input::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+.sus-input-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 3.5rem;
+}
+
+.sus-input-button {
+  flex: 1;
+  padding: 0;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  border: 2px solid #090909;
+  border-radius: 0.5rem;
+}
+
+.sus-input-button-up {
+  background-color: #11b23a;
+}
+
+.sus-input-button-up:hover,
+.sus-input-button-up:focus {
+  background-color: #0d9230;
+}
+
+.sus-input-button-down {
+  background-color: #dc3545;
+}
+
+.sus-input-button-down:hover,
+.sus-input-button-down:focus {
+  background-color: #bb2d3b;
+}
+
+.reactor-button {
+  background-color: #611175;
+  border-color: #611175;
+}
+
+.reactor-message {
+  color: #fbbf24;
+}
+
+.reactor-message.success {
+  color: #4ade80;
+}
+
+.module-card .btn {
+  background-color: #611175;
+  border-color: #611175;
+  color: #fff;
+}
